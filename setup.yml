@@ -1,0 +1,22 @@
+---
+- name: Lab set-up
+  hosts: servers
+  tasks:
+    - name: Testing
+      debug: 
+        msg: "Playbook done"
+
+
+
+- name: Workstation set-up
+  hosts: workstation
+  become: true
+  become_user: root
+  tasks:
+    - name: Adding hosts to /etc/hosts
+      blockinfile:
+        path: /etc/hosts
+        block: |
+          server1 192.168.33.51 
+          server2 192.168.33.52
+          server3 192.168.33.53

@@ -1,0 +1,7 @@
+workstation  ansible_host=192.168.33.50 ansible_ssh_private_key_file=/vagrant/.vagrant/machines/workstation/virtualbox/private_key
+server1      ansible_host=192.168.33.51 ansible_ssh_private_key_file=/vagrant/.vagrant/machines/server1/virtualbox/private_key
+server2      ansible_host=192.168.33.52 ansible_ssh_private_key_file=/vagrant/.vagrant/machines/server2/virtualbox/private_key
+server3      ansible_host=192.168.33.53 ansible_ssh_private_key_file=/vagrant/.vagrant/machines/server3/virtualbox/private_key
+
+[servers]
+server[1:3]
