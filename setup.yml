@@ -1,22 +1,57 @@
 ---
-- name: Lab set-up
-  hosts: servers
-  tasks:
-    - name: Testing
-      debug: 
-        msg: "Playbook done"
-
-
-
 - name: Workstation set-up
   hosts: workstation
   become: true
   become_user: root
   tasks:
+    - name: Adding Student user
+      ansible.builtin.user:
+        name: student
+        password: $5$FZdHme.GElC8xy/T$45vf455zBbUvXWlhrEAkZEQjabCyqgPpw.JDPb1Xzu9
+        comment: Ansible managed user
+        shell: /bin/bash
+        generate_ssh_key: yes
+        ssh_key_bits: 2048
+        ssh_key_file: /home/student/.ssh/id_rsa
+        groups: wheel
+        append: yes
     - name: Adding hosts to /etc/hosts
       blockinfile:
         path: /etc/hosts
         block: |
-          server1 192.168.33.51 
-          server2 192.168.33.52
-          server3 192.168.33.53
+          192.168.33.51 server1
+          192.168.33.52 server2
+          192.168.33.53 server3
+
+- name: Lab set-up
+  hosts: servers
+  become: true
+  become_user: root
+  tasks:
+    - name: Creating ansible user
+      ansible.builtin.user:
+        name: ansible
+        password: $5$EnJDhFKAB5AWftJE$q0/jnnpbfKejIp59RZjb0SYtWSB6Lr4v.UxDhpi04g2
+        comment: Ansible managed user
+        shell: /bin/bash
+        groups: wheel
+        append: yes
+    - name: Create .ssh directory if it does not exist
+      ansible.builtin.file:
+        path: /home/ansible/.ssh
+        state: directory
+        mode: '0700'
+    - name: Copy keys
+      authorized_key: 
+        user: ansible
+        key: /home/student/.ssh/id_rsa.pub
+        state: present
+    - name: Copying student SSH key to ansible users on servers
+      ansible.builtin.copy:
+        src: /home/student/.ssh/id_rsa.pub
+        dest: /home/ansible/.ssh/authorized_keys
+        owner: ansible
+        group: ansible
+        mode: '0600'
+
+    
