@@ -25,6 +25,10 @@
     - name: Adding hosts to /etc/hosts
       blockinfile:
         path: /home/student/.ssh/config
+        create: true
+        mode: '0600'
+        owner: student
+        group: student
         block: |
           Host s1
             Hostname server1
