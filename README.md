@@ -10,7 +10,6 @@ This project sets up a lab environment with **three endpoints** (servers) and a 
 - [Prerequisites](#prerequisites)
 - [Installation](#installation)
 - [Usage](#usage)
-- [Credentials](#credentials)
 - [Troubleshooting](#troubleshooting)
 
 ## Overview
@@ -93,16 +92,6 @@ Before setting up the lab, ensure you have the following installed:
     endpoint2 ansible_host=192.168.50.5 ansible_user=ansible
     endpoint3 ansible_host=192.168.50.6 ansible_user=ansible
     ```
-
-## Credentials
-* Workstation:
-    * Username: `student`
-    * Password: `student`
-
-* Endpoints (servers):
-    * Username: `ansible`
-    * Password: `ansible`
-
 
 ## Troubleshooting
 If Vagrant fails to start the environment, try running:
