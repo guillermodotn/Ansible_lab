@@ -4,46 +4,65 @@
   become: true
   become_user: root
   tasks:
-    - name: Adding Student user
+    - name: Adding user
       ansible.builtin.user:
-        name: student
+        name: user
         password: $5$FZdHme.GElC8xy/T$45vf455zBbUvXWlhrEAkZEQjabCyqgPpw.JDPb1Xzu9
-        comment: Ansible managed user
+        comment: Lab workstation user
         shell: /bin/bash
-        generate_ssh_key: yes
+        generate_ssh_key: true
         ssh_key_bits: 2048
-        ssh_key_file: /home/student/.ssh/id_rsa
+        ssh_key_file: /home/user/.ssh/id_rsa
         groups: wheel
-        append: yes
-    - name: Adding hosts to /etc/hosts
-      blockinfile:
+        append: true
+
+    - name: Adding server entries to /etc/hosts
+      ansible.builtin.blockinfile:
         path: /etc/hosts
         block: |
           192.168.33.51 server1
           192.168.33.52 server2
           192.168.33.53 server3
-    - name: Adding hosts to /etc/hosts
-      blockinfile:
-        path: /home/student/.ssh/config
+          192.168.33.54 server4
+
+    - name: Configuring SSH shortcuts for user
+      ansible.builtin.blockinfile:
+        path: /home/user/.ssh/config
         create: true
         mode: '0600'
-        owner: student
-        group: student
+        owner: user
+        group: user
         block: |
+          Host server* s1 s2 s3 s4
+            StrictHostKeyChecking no
+            UserKnownHostsFile /dev/null
+
           Host s1
             Hostname server1
-            User    ansible
-            IdentityFile ~/.ssh/id_rsa
-          Host s2
-            Hostname server2
-            User    ansible
-            IdentityFile ~/.ssh/id_rsa
-          Host s3
-            Hostname server3
-            User    ansible
+            User ansible
             IdentityFile ~/.ssh/id_rsa
 
-- name: Lab set-up
+          Host s2
+            Hostname server2
+            User ansible
+            IdentityFile ~/.ssh/id_rsa
+
+          Host s3
+            Hostname server3
+            User ansible
+            IdentityFile ~/.ssh/id_rsa
+
+          Host s4
+            Hostname server4
+            User ansible
+            IdentityFile ~/.ssh/id_rsa
+
+    - name: Installing Ansible on workstation
+      ansible.builtin.dnf:
+        name: ansible
+        state: present
+
+- name: Server set-up
   hosts: servers
   become: true
   become_user: root
@@ -52,23 +71,30 @@
       ansible.builtin.user:
         name: ansible
         password: $5$EnJDhFKAB5AWftJE$q0/jnnpbfKejIp59RZjb0SYtWSB6Lr4v.UxDhpi04g2
-        comment: Ansible managed user
+        comment: Lab managed node user
         shell: /bin/bash
-        groups: wheel
-        append: yes
-    - name: Create .ssh directory if it does not exist
+        groups: "{{ 'wheel' if ansible_os_family == 'RedHat' else 'sudo' }}"
+        append: true
+
+    - name: Granting passwordless sudo to ansible user
+      ansible.builtin.copy:
+        content: "ansible ALL=(ALL) NOPASSWD: ALL\n"
+        dest: /etc/sudoers.d/ansible
+        mode: '0440'
+        validate: 'visudo -cf %s'
+
+    - name: Creating .ssh directory
       ansible.builtin.file:
         path: /home/ansible/.ssh
         state: directory
         owner: ansible
         group: ansible
         mode: '0700'
-    - name: Copying student SSH key to ansible users on servers
+
+    - name: Copying user SSH key to ansible users on servers
       ansible.builtin.copy:
-        src: /home/student/.ssh/id_rsa.pub
+        src: /home/user/.ssh/id_rsa.pub
         dest: /home/ansible/.ssh/authorized_keys
         owner: ansible
         group: ansible
         mode: '0600'
-
-    
